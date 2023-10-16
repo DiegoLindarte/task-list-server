@@ -12,21 +12,21 @@ router.use(bodyParser.json());
 
 router.get('/tareasCompletas', (req, res) => {
 
-    const isCompleted = true;
+    //const isCompleted = true;
 
-    const tareasFilter = listaTareas.filter((tarea) => tarea.isCompleted == isCompleted);
+    const tareasCompletas = listaTareas.filter((tarea) => tarea.isCompleted);
 
-    res.status(200).send({listaTareas: tareasFilter});
+    res.status(200).json({tareasCompletas});
 
 });
 
 router.get('/tareasIncompletas', (req, res) => {
 
-    const isCompleted = false;
+    //const isCompleted = false;
 
-    const tareasFilter = listaTareas.filter((tarea) => tarea.isCompleted == isCompleted);
+    const tareasIncompletas = listaTareas.filter((tarea) => !tarea.isCompleted);
 
-    res.status(200).send({listaTareas: tareasFilter});
+    res.status(200).json({tareasIncompletas});
 
 });
 

@@ -10,13 +10,27 @@ router.use(express.json());
 
 router.use(bodyParser.json());
 
-router.post('/crearTarea', (req, res) => {
+const validarTarea = (req, res, next) => {
 
-    const nuevaTarea = {
-        "id":"4",
-        "isCompleted":false,
-        "description":"Comprar Six"
-    }
+    const {id, isCompleted, description} = req.body;
+
+    if ( !id || !isCompleted || !description ) {
+        
+        return res.status(400).json({
+
+            error: "Todos los datos son necesarios"
+
+        });
+
+    };
+
+    next();
+
+};
+
+router.post('/crearTarea', validarTarea, (req, res) => {
+
+    const nuevaTarea = req.body
 
     listaTareas.push(nuevaTarea);
 
@@ -48,7 +62,7 @@ router.delete('/eliminarTarea/:id', (req, res) => {
 
 });
 
-router.put('/actualizarTarea/:id', (req, res) => {
+router.put('/actualizarTarea/:id', validarTarea, (req, res) => {
 
     const tareaId = req.params.id;
 
