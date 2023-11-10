@@ -1,5 +1,7 @@
 const express = require('express');
 
+const jwt = require('jsonwebtoken');
+
 const app = express();
 
 const routes = require('./list-view-router');
@@ -12,7 +14,11 @@ const bodyParser = require('body-parser');
 
 const validarMetodos = require('./middleware-methods');
 
-const port = 9000;
+require('dotenv').config({path: './.env'});
+
+const port = process.env.PORT;
+
+const secretKey = process.env.SECRETKEY;
 
 app.use(express.json());
 
@@ -21,6 +27,42 @@ app.use(bodyParser.json());
 app.use('/lista', routes);
 
 app.use('/lista-edit', routes2);
+
+function authMiddleware(rolReq) {
+
+    return (req, res, next) => {
+
+        const headerToken = req.headers.autorizacion;
+
+        if (!headerToken) {
+        
+            return res.status(400).json({error: 'No existe token'});
+
+        };
+
+        jwt.verify(headerToken, secretKey, (err, decoded) => {
+
+            if (err) {
+            
+                return res.status(400).json({error: 'Token no valido'});
+
+            };
+
+            if (decoded.rol !== rolReq) {
+                
+                return res.status(400).json({error: 'No tienes permisos de acceso'});
+
+            };
+
+            next();
+
+        });
+
+        next();
+
+    };
+
+};
 
 app.use((req, res, next) => {
     
@@ -54,7 +96,7 @@ app.use((req, res, next) => {
 
     };
 
-    if (!tarea.id || typeof tarea.isCompleted === "undefined" || !tarea.description) {
+    /* if (!tarea.id || typeof tarea.isCompleted === "undefined" || !tarea.description || !tarea.user || !tarea.password) {
         
         return res.status(400).json(
             {
@@ -62,7 +104,7 @@ app.use((req, res, next) => {
             }
         );
 
-    };
+    }; */
 
     next();
 
@@ -71,6 +113,38 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
 
     res.status(200).send('Bienvenido');
+
+});
+
+app.post('/login', (req, res) => {
+
+    const {user, password} = req.body;
+
+    if (user == 'admin' && password == 'admin1') {
+
+        const payload = 
+        {
+            user: user,
+            rol: 'admin',
+            name: 'Diego',
+            id: 11
+        };
+        
+        const token = jwt.sign(payload, secretKey, {expiresIn: '24h'});
+
+        res.status(200).json({token});
+
+    } else {
+
+        res.status(400).json({error: 'Credenciales Incorrectas'});
+
+    }
+
+});
+
+app.get('/loginProtected', authMiddleware('user'), (req, res) => {
+
+    res.status(200).json({mensaje: 'Ruta protegida'});
 
 });
 
