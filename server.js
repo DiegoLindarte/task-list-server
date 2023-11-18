@@ -12,6 +12,8 @@ const listaTareas = require('./lista-tareas.json');
 
 const bodyParser = require('body-parser');
 
+const fs = require('fs');
+
 const validarMetodos = require('./middleware-methods');
 
 require('dotenv').config({path: './.env'});
@@ -96,6 +98,8 @@ app.use((req, res, next) => {
 
     };
 
+    //RECUERDA !!
+
     /* if (!tarea.id || typeof tarea.isCompleted === "undefined" || !tarea.description || !tarea.user || !tarea.password) {
         
         return res.status(400).json(
@@ -113,6 +117,20 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
 
     res.status(200).send('Bienvenido');
+
+});
+
+app.get('/loginProtected', authMiddleware('user'), (req, res) => {
+
+    res.status(200).json({mensaje: 'Ruta protegida'});
+
+});
+
+app.get('/todas', (req, res) => {
+
+    const data = fs.readFileSync('tareas.txt', 'utf8').trim().split('\n');
+
+    res.status(200).json(data);
 
 });
 
@@ -142,9 +160,59 @@ app.post('/login', (req, res) => {
 
 });
 
-app.get('/loginProtected', authMiddleware('user'), (req, res) => {
+app.post('/tareas', (req, res) => {
 
-    res.status(200).json({mensaje: 'Ruta protegida'});
+    const newTarea = req.body.tarea;
+
+    fs.appendFileSync('tareas.txt', newTarea + '\n');
+
+    res.status(201).json( {message: 'Tarea agregada'} );
+
+});
+
+app.put('/tareas/:index', (req, res) => {
+
+    const index = parseInt(req.params.index);
+
+    const {tarea} = req.body;
+
+    const data = fs.readFileSync('tareas.txt', 'utf8').trim().split('\n');
+
+    if (index >= 0 && index < data.length) {
+        
+        data[index] = tarea;
+
+        fs.writeFileSync('tareas.txt', data.join('\n'));
+
+        res.status(200).json({message: 'Tarea actualizada'});
+
+    }else{
+
+        res.status(404).json({message: 'La tarea no pudo ser actualizada'});
+
+    };
+
+});
+
+app.delete('/tareas/:index', (req, res) => {
+
+    const index = parseInt(req.params.index);
+
+    const data = fs.readFileSync('tareas.txt', 'utf8').trim().split('\n');
+
+    if (index >= 0 && index < data.length) {
+        
+        data.splice(index, 1);
+
+        fs.writeFileSync('tareas.txt', data.join('\n'));
+
+        res.status(200).json({message: 'Tarea eliminada'});
+
+    }else{
+
+        res.status(404).json({message: 'La tarea no pudo ser eliminada'});
+
+    };
 
 });
 
