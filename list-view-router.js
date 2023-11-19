@@ -42,19 +42,17 @@ router.get('/tareasIncompletas', (req, res) => {
 
 router.get('/tarea/:id', (req, res) => {
 
-    const tareaId = req.params.id;
+    const tareaId = parseInt(req.params.id);
 
-    const index = listaTareas.find((t) => t.id == tareaId);
+    const tarea = listaTareas.find((t) => t.id == tareaId);
 
-    if (index == -1) {
+    if (tarea == -1) {
         
         res.status(404).json({message: 'Tarea no encontrada'});
 
     } else {
 
-        const tarea = '?';
-
-        res.status(204).json({message: 'Tarea actualizada'});
+        res.status(200).json({tarea});
 
     };
 });
